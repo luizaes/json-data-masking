@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace JsonDataMasking
+﻿namespace JsonDataMasking.Attributes
 {
     [AttributeUsage(AttributeTargets.All)]
     public class SensitiveDataAttribute : Attribute
@@ -15,17 +9,17 @@ namespace JsonDataMasking
 
         public int ShowLast;
 
-        public string? Text;
+        public string? SubstituteText;
 
         public string Mask;
 
         public SensitiveDataAttribute(bool preserveLength = true, int showFirst = 0, int showLast = 0,
-            string? text = null, string? mask = null)
+            string? substituteText = null, string? mask = null)
         {
             PreserveLength = preserveLength;
             ShowFirst = showFirst;
             ShowLast = showLast;
-            Text = text;
+            SubstituteText = substituteText;
             Mask = mask ?? "*";
         }
     }
