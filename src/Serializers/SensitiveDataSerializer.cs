@@ -35,7 +35,11 @@ namespace JsonDataMasking.Serializers
             foreach (PropertyInfo property in type.GetProperties())
             {
                 if (property.GetCustomAttribute<SensitiveDataAttribute>() is not null)
+                {
+                    if (property.PropertyType != typeof(string))
+                        throw new NotSupportedException("Masking of non-string types is not supported");
                     yield return property;
+                }
 
                 if (property.PropertyType.IsClass)
                 {
