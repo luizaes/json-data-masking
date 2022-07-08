@@ -6,43 +6,37 @@ namespace JsonDataMasking.Masks
 {
     public static class JsonMask
     {
-        private static readonly int DefaultMaskSize = 5;
+        public static readonly int DefaultMaskSize = 5;
 
         public static T MaskSensitiveData<T>(T data)
         {
-            var properties = GetPropertiesWithSensitiveDataAttribute(typeof(T));
+            if (data is null)
+                throw new ArgumentNullException(nameof(data));
 
-            foreach (PropertyInfo property in properties)
-            {
-                var attribute = property.GetCustomAttribute<SensitiveDataAttribute>()!;
-                var propertyValue = property.GetValue(data)?.ToString();
-
-                var maskedPropertyValue = GetMaskedPropertyValue(propertyValue, attribute);
-
-                property.SetValue(data, maskedPropertyValue);
-            }
-            return data;
+            return MaskPropertiesWithSensitiveDataAttribute(data);
         }
 
-        private static IEnumerable<PropertyInfo> GetPropertiesWithSensitiveDataAttribute(Type type)
+        private static T MaskPropertiesWithSensitiveDataAttribute<T>(T data)
         {
-            if (type is null)
-                throw new ArgumentNullException(nameof(type));
+            var typeProperties = data!.GetType().GetProperties();
 
-            foreach (PropertyInfo property in type.GetProperties())
+            foreach(PropertyInfo property in typeProperties)
             {
-                if (property.GetCustomAttribute<SensitiveDataAttribute>() is not null
-                    && IsTypeValidToMask(property.PropertyType))
-                    yield return property;
+                var propertyValue = property.GetValue(data);
+                var propertyAttribute = property.GetCustomAttribute<SensitiveDataAttribute>();
+                if (propertyValue is null)
+                    continue;
 
-                if (property.PropertyType.IsClass)
+                if (propertyAttribute is not null && IsTypeValidToMask(property.PropertyType))
                 {
-                    foreach (PropertyInfo childProperty in GetPropertiesWithSensitiveDataAttribute(property.PropertyType))
-                    {
-                        yield return childProperty;
-                    }
+                    var maskedPropertyValue = GetMaskedPropertyValue(propertyValue?.ToString(), propertyAttribute);
+                    property.SetValue(data, maskedPropertyValue);
+                } else if (IsNonStringReferenceType(property.PropertyType)) {
+                    var maskedNestedPropertyValue = MaskPropertiesWithSensitiveDataAttribute(propertyValue);
+                    property.SetValue(data, maskedNestedPropertyValue);  
                 }
             }
+            return data;
         }
 
         private static bool IsTypeValidToMask(Type type) => type switch
@@ -53,6 +47,13 @@ namespace JsonDataMasking.Masks
 
         private static bool AreFirstAndLastParametersInValidRange(int propertySize, SensitiveDataAttribute attribute) =>
             attribute.ShowFirst <= propertySize && attribute.ShowLast <= propertySize && (attribute.ShowFirst + attribute.ShowLast) <= propertySize;
+
+        private static bool IsNonStringReferenceType(Type type)
+        {
+            if (type == null || type == typeof(string))
+                return false;
+            return type.IsClass;
+        }
 
         private static string? GetMaskedPropertyValue(string? currentPropertyValue, SensitiveDataAttribute attribute)
         {
