@@ -32,11 +32,11 @@ public class PropertiesExamples
 
     /// 123456789 results in "123*****789"
     [SensitiveData(ShowFirst = 3, ShowLast = 3)]
-    public string SubstituteMask { get; set; }
+    public string ShowCharactersMask { get; set; }
 
     /// 123456789 results in "#########"
     [SensitiveData(PreserveLength = true, Mask = "#")]
-    public string SubstituteMask { get; set; }
+    public string PreserveCustomMask { get; set; }
 }
 ```
 
