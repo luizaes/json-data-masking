@@ -1,3 +1,5 @@
+[![NuGet Version](https://img.shields.io/nuget/v/JsonDataMasking)](https://www.nuget.org/packages/JsonDataMasking/)
+
 # JSON Data Masking
 
 JSON Data Masking is a library for .NET Core applications that simplifies the masking process of PII/sensitive information.
