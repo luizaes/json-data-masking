@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <RootNamespace>JsonDataMasking</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -10,16 +10,13 @@
     <RepositoryUrl>https://github.com/luizaes/json-data-masking</RepositoryUrl>
     <Company></Company>
     <Authors>luizaen</Authors>
-    <PackageIcon>Icon.png</PackageIcon>
+    <PackageIconUrl>https://i.imgur.com/zcIknGi.png</PackageIconUrl>
     <PackageTags>masking;json</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\Icon.png">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
     <None Include="..\..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

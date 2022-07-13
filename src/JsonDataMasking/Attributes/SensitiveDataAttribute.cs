@@ -1,4 +1,6 @@
-﻿namespace JsonDataMasking.Attributes
+﻿using System;
+
+namespace JsonDataMasking.Attributes
 {
     [AttributeUsage(AttributeTargets.All)]
     public class SensitiveDataAttribute : Attribute

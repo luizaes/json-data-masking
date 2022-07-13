@@ -1,4 +1,6 @@
 ﻿using JsonDataMasking.Attributes;
+using System;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -27,7 +29,7 @@ namespace JsonDataMasking.Masks
                 if (propertyValue is null)
                     continue;
 
-                if (propertyAttribute is not null && IsTypeValidToMask(property.PropertyType))
+                if (propertyAttribute != null && IsTypeValidToMask(property.PropertyType))
                 {
                     var maskedPropertyValue = GetMaskedPropertyValue(propertyValue?.ToString(), propertyAttribute);
                     property.SetValue(data, maskedPropertyValue);
@@ -59,7 +61,7 @@ namespace JsonDataMasking.Masks
         {
             if (string.IsNullOrWhiteSpace(currentPropertyValue)) return currentPropertyValue;
 
-            StringBuilder maskedPropertyValueBuilder = new(attribute.SubstituteText);
+            var maskedPropertyValueBuilder = new StringBuilder(attribute.SubstituteText);
 
             if (maskedPropertyValueBuilder.Length == 0)
             {
