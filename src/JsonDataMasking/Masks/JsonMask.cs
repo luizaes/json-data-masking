@@ -10,6 +10,16 @@ namespace JsonDataMasking.Masks
     {
         public static readonly int DefaultMaskSize = 5;
 
+        /// <summary>
+        /// Mask values of <c>string</c> type class properties that have the <c>[SensitiveData]</c> attribute.
+        /// Properties with <c>null</c> values or that don't have the attribute remain unchanged.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="data"></param>
+        /// <returns><c>T</c> maskedData</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the <c>data</c> parameter is <c>null</c></exception>
+        /// <exception cref="NotSupportedException">Thrown if the <c>[SensitiveData]</c> attribute was added to a not supported type</exception>
+        /// <exception cref="ArgumentException">Thrown if the parameters <c>ShowFirst</c> and/or <c>ShowLast</c> have values out of the valid range, considering the property's value</exception>
         public static T MaskSensitiveData<T>(T data)
         {
             if (data is null)

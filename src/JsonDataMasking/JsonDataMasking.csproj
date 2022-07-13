@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <RootNamespace>JsonDataMasking</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Description>JSON Data Masking is a library for .NET Core applications that simplifies the masking process of PII/sensitive information.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
