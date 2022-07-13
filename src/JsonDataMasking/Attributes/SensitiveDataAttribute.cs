@@ -2,7 +2,7 @@
 
 namespace JsonDataMasking.Attributes
 {
-    [AttributeUsage(AttributeTargets.All)]
+    [AttributeUsage(AttributeTargets.Property)]
     public class SensitiveDataAttribute : Attribute
     {
         public bool PreserveLength = false;
