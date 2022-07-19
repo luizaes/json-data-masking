@@ -119,13 +119,17 @@ namespace JsonDataMasking.Test
         }
 
         [Fact]
-        public void MaskSensitiveData_ThrowsArgumentException_WhenHasAttributeWithInvalidShowFirstAndLastRange()
+        public void MaskSensitiveData_MasksUsingDefaultSize_WhenHasAttributeWithInvalidShowFirstAndLastRange()
         {
             // Arrange
             var login = new LoginMock { Email = "email@email.com" };
+            var expectedMask = new string('*', JsonMask.DefaultMaskSize);
 
-            // Act and Assert
-            Assert.Throws<ArgumentException>(() => JsonMask.MaskSensitiveData(login));
+            // Act
+            var maskedLogin = JsonMask.MaskSensitiveData(login);
+
+            // Assert 
+            Assert.Equal(expectedMask, maskedLogin.Email);
         }
 
         [Fact]

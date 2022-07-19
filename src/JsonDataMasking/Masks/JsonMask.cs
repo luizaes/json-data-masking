@@ -25,7 +25,6 @@ namespace JsonDataMasking.Masks
         /// <returns><c>T</c> maskedData</returns>
         /// <exception cref="ArgumentNullException">Thrown when the <c>data</c> parameter is <c>null</c></exception>
         /// <exception cref="NotSupportedException">Thrown if the <c>[SensitiveData]</c> attribute was added to a not supported type</exception>
-        /// <exception cref="ArgumentException">Thrown if the parameters <c>ShowFirst</c> and/or <c>ShowLast</c> have values out of the valid range, considering the property's value</exception>
         public static T MaskSensitiveData<T>(T data)
         {
             if (data is null)
@@ -81,8 +80,7 @@ namespace JsonDataMasking.Masks
                     : DefaultMaskSize;
 
                 if (!AreFirstAndLastParametersInValidRange(propertySize, attribute))
-                    throw new ArgumentException($"{nameof(attribute.ShowFirst)} and {nameof(attribute.ShowLast)} values " +
-                        $"cannot be greater than the original string length");
+                    return new string(attribute.Mask.First(), DefaultMaskSize);
 
                 maskedPropertyValueBuilder.Append(currentPropertyValue?[..attribute.ShowFirst]);
                 maskedPropertyValueBuilder.Append(currentPropertyValue?.Substring(propertySize - attribute.ShowLast, attribute.ShowLast));
