@@ -18,6 +18,10 @@ After installing the Nuget package in your project, you need to take the followi
 
 2. Call the `JsonMask.MaskSensitiveData()` function or, call directly the `JsonMaskSerializer.Serialize()` to mask your data and serialize your object with `System.Text.Json`'s serializer.
 
+### Support
+
+This library supports masking of `string` fields only, although it also supports `List<string>`/`IEnumerable<string>` and `Dictionary<string, string>`. Nested class properties are also masked, independently of depth. 
+
 ## Examples
 
 ### Attributes
