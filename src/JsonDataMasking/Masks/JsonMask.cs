@@ -1,5 +1,7 @@
 ﻿using JsonDataMasking.Attributes;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -8,8 +10,12 @@ namespace JsonDataMasking.Masks
 {
     public static class JsonMask
     {
+        /// <summary>
+        /// Default size of the mask, used if <c>PreserveLength</c> is set to <c>false</c>.
+        /// </summary>
         public static readonly int DefaultMaskSize = 5;
 
+        #region Masking
         /// <summary>
         /// Mask values of <c>string</c> type class properties that have the <c>[SensitiveData]</c> attribute.
         /// Properties with <c>null</c> values or that don't have the attribute remain unchanged.
@@ -32,39 +38,34 @@ namespace JsonDataMasking.Masks
         {
             var typeProperties = data!.GetType().GetProperties();
 
-            foreach(PropertyInfo property in typeProperties)
+            foreach (PropertyInfo property in typeProperties)
             {
                 var propertyValue = property.GetValue(data);
-                var propertyAttribute = property.GetCustomAttribute<SensitiveDataAttribute>();
                 if (propertyValue is null)
                     continue;
 
-                if (propertyAttribute != null && IsTypeValidToMask(property.PropertyType))
+                var propertyAttribute = property.GetCustomAttribute<SensitiveDataAttribute>();
+
+                if (IsClassReferenceType(property.PropertyType))
+                {
+                    MaskClassProperty(data, property);
+                }
+                else if (IsTypeAssignableToGenericType(property.PropertyType, typeof(List<>))
+                    || IsTypeAssignableToGenericType(property.PropertyType, typeof(IEnumerable<>)))
+                {
+                    MaskIEnumerableProperty(data, property);
+                }
+                else if (propertyAttribute != null && IsTypeAssignableToGenericType(property.PropertyType, typeof(Dictionary<,>)))
+                {
+                    MaskDictionaryProperty(data, property);
+                }
+                else if (propertyAttribute != null && IsSupportedBaseType(property.PropertyType))
                 {
                     var maskedPropertyValue = GetMaskedPropertyValue(propertyValue?.ToString(), propertyAttribute);
                     property.SetValue(data, maskedPropertyValue);
-                } else if (IsNonStringReferenceType(property.PropertyType)) {
-                    var maskedNestedPropertyValue = MaskPropertiesWithSensitiveDataAttribute(propertyValue);
-                    property.SetValue(data, maskedNestedPropertyValue);  
                 }
             }
             return data;
-        }
-
-        private static bool IsTypeValidToMask(Type type) => type switch
-        {
-            Type _ when type == typeof(string) => true,
-            _ => throw new NotSupportedException("Masking of non-string types is not supported")
-        };
-
-        private static bool AreFirstAndLastParametersInValidRange(int propertySize, SensitiveDataAttribute attribute) =>
-            attribute.ShowFirst <= propertySize && attribute.ShowLast <= propertySize && (attribute.ShowFirst + attribute.ShowLast) <= propertySize;
-
-        private static bool IsNonStringReferenceType(Type type)
-        {
-            if (type == null || type == typeof(string))
-                return false;
-            return type.IsClass;
         }
 
         private static string? GetMaskedPropertyValue(string? currentPropertyValue, SensitiveDataAttribute attribute)
@@ -90,5 +91,91 @@ namespace JsonDataMasking.Masks
 
             return maskedPropertyValueBuilder.ToString();
         }
+
+        private static void MaskClassProperty<T>(T data, PropertyInfo property)
+        {
+            var maskedNestedPropertyValue = MaskPropertiesWithSensitiveDataAttribute(property.GetValue(data));
+            property.SetValue(data, maskedNestedPropertyValue);
+        }
+
+        private static void MaskIEnumerableProperty<T>(T data, PropertyInfo property)
+        {
+            var collection = (property.GetValue(data) as IEnumerable)!;
+            var maskedCollection = new List<object>();
+            Type? collectionType = null;
+            var propertyAttribute = property.GetCustomAttribute<SensitiveDataAttribute>();
+
+            foreach (var value in collection)
+            {
+                if (collectionType is null) collectionType = value.GetType();
+                
+                object? maskedCollectionValue = null;
+                if (IsClassReferenceType(collectionType))
+                    maskedCollectionValue = MaskPropertiesWithSensitiveDataAttribute(value);
+                else if (propertyAttribute != null && IsSupportedBaseType(collectionType))
+                    maskedCollectionValue = GetMaskedPropertyValue(value?.ToString(), propertyAttribute);
+
+                if (maskedCollectionValue != null)
+                    maskedCollection.Add(maskedCollectionValue);
+            }
+            if (collectionType != null && maskedCollection.Any())
+            {
+                var typedCollection = ConvertCollectionType(maskedCollection, collectionType);
+                property.SetValue(data, typedCollection);
+            }
+        }
+
+        private static void MaskDictionaryProperty<T>(T data, PropertyInfo property)
+        {
+            var propertyAttribute = property.GetCustomAttribute<SensitiveDataAttribute>();
+            var collection = property.GetValue(data) as IDictionary<string, string>;
+            if (collection is null)
+                throw new NotSupportedException("Masking of non-string base types in Dictionaries is not supported");
+
+            var maskedCollection = new Dictionary<string, string?>();
+
+            foreach (var pair in collection)
+            {
+                var maskedCollectionValue = GetMaskedPropertyValue(pair.Value, propertyAttribute);
+                maskedCollection.Add(pair.Key, maskedCollectionValue);
+            }
+            property.SetValue(data, maskedCollection);
+        }
+        #endregion Masking
+
+        #region Convertion
+        private static IEnumerable ConvertCollectionType(IEnumerable collection, Type type)
+        {
+            var conversionMethod = typeof(Extensions).GetMethod(nameof(Extensions.ConvertToGenericType),
+                new[] { typeof(IEnumerable) });
+            var genericMethod = conversionMethod.MakeGenericMethod(type);
+
+            return (IEnumerable)genericMethod.Invoke(null, new[] { collection });
+        }
+        #endregion Convertion
+
+        #region Validations
+        private static bool IsSupportedBaseType(Type type) => type switch
+        {
+            Type _ when type == typeof(string) => true,
+            _ => throw new NotSupportedException("Masking of non-string base types is not supported")
+        };
+
+        private static bool AreFirstAndLastParametersInValidRange(int propertySize, SensitiveDataAttribute attribute) =>
+            attribute.ShowFirst <= propertySize && attribute.ShowLast <= propertySize && (attribute.ShowFirst + attribute.ShowLast) <= propertySize;
+
+        private static bool IsClassReferenceType(Type type)
+        {
+            if (type == null || type == typeof(string))
+                return false;
+            return type.IsClass && !type.IsGenericType;
+        }
+
+        private static bool IsTypeAssignableToGenericType(Type originalType, Type targetType)
+        {
+            return originalType.IsGenericType &&
+                originalType.GetGenericTypeDefinition().IsAssignableFrom(targetType);
+        }
+        #endregion Validations
     }
 }
