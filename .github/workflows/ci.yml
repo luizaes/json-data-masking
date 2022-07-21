@@ -23,4 +23,4 @@ jobs:
         dotnet-version: '6.0.x'
 
     - name: Run tests
-      run: dotnet test --no-restore --no-build --verbosity normal src
+      run: dotnet test --no-restore --no-build --verbosity normal src/JsonDataMasking.Test
