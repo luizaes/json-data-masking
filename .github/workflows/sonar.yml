@@ -1,32 +1,38 @@
 name: Sonar
+
 on:
   push:
-    branches:
-      - ['main', 'dev']
+    branches: ['main', 'dev']
   pull_request:
     types: [opened, synchronize, reopened]
+
 jobs:
   build:
     name: Build
     runs-on: windows-latest
     steps:
+
       - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
           java-version: 1.11
+
       - name: Install dotnet 
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '6.0.x'
+
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+
       - name: Cache SonarCloud packages
         uses: actions/cache@v1
         with:
           path: ~\sonar\cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
+
       - name: Cache SonarCloud scanner
         id: cache-sonar-scanner
         uses: actions/cache@v1
@@ -34,12 +40,14 @@ jobs:
           path: .\.sonar\scanner
           key: ${{ runner.os }}-sonar-scanner
           restore-keys: ${{ runner.os }}-sonar-scanner
+
       - name: Install SonarCloud scanner
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
         shell: powershell
         run: |
           New-Item -Path .\.sonar\scanner -ItemType Directory
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+          
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
