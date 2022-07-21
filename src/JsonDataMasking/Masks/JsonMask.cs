@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 
 namespace JsonDataMasking.Masks
 {
@@ -27,10 +28,14 @@ namespace JsonDataMasking.Masks
         /// <exception cref="NotSupportedException">Thrown if the <c>[SensitiveData]</c> attribute was added to a not supported type</exception>
         public static T MaskSensitiveData<T>(T data)
         {
-            if (data is null)
+            // Workaround to create a copy of data, instead of using the original object
+            var serializedData = JsonSerializer.Serialize(data);
+            var deserializedData = JsonSerializer.Deserialize<T>(serializedData);
+
+            if (deserializedData is null)
                 throw new ArgumentNullException(nameof(data));
 
-            return MaskPropertiesWithSensitiveDataAttribute(data);
+            return MaskPropertiesWithSensitiveDataAttribute(deserializedData);
         }
 
         private static T MaskPropertiesWithSensitiveDataAttribute<T>(T data)

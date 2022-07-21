@@ -11,6 +11,7 @@ namespace JsonDataMasking.Test
     {
         private const string CustomerDocument = "99999999999";
         private const int ShowElementsNumber = 3;
+        private readonly string DefaultMask = new('*', JsonMask.DefaultMaskSize);
 
         [Fact]
         public void MaskSensitiveData_DoesNotMaskProperty_WhenDoesNotHaveAttribute()
@@ -31,13 +32,12 @@ namespace JsonDataMasking.Test
         {
             // Arrange
             var customer = new CustomerMock { FullName = "John Doe" };
-            var expectedMask = new string('*', JsonMask.DefaultMaskSize);
 
             // Act
             var maskedCustomerData = JsonMask.MaskSensitiveData(customer);
 
             // Assert
-            Assert.Equal(expectedMask, maskedCustomerData.FullName);
+            Assert.Equal(DefaultMask, maskedCustomerData.FullName);
         }
 
         [Fact]
@@ -123,13 +123,12 @@ namespace JsonDataMasking.Test
         {
             // Arrange
             var login = new LoginMock { Email = "email@email.com" };
-            var expectedMask = new string('*', JsonMask.DefaultMaskSize);
 
             // Act
             var maskedLogin = JsonMask.MaskSensitiveData(login);
 
             // Assert 
-            Assert.Equal(expectedMask, maskedLogin.Email);
+            Assert.Equal(DefaultMask, maskedLogin.Email);
         }
 
         [Fact]
@@ -154,13 +153,12 @@ namespace JsonDataMasking.Test
                     ZipCode = "99999999"
                 } 
             };
-            var expectedMask = new string('*', JsonMask.DefaultMaskSize);
 
             // Act
             var maskedCustomerData = JsonMask.MaskSensitiveData(customer);
 
             // Assert
-            Assert.Equal(expectedMask, maskedCustomerData.Address?.ZipCode);
+            Assert.Equal(DefaultMask, maskedCustomerData.Address?.ZipCode);
         }
 
         [Fact]
@@ -175,13 +173,12 @@ namespace JsonDataMasking.Test
                     "54321"
                 }
             };
-            var expectedMask = new string('*', JsonMask.DefaultMaskSize);
 
             // Act
             var maskedCustomerData = JsonMask.MaskSensitiveData(customer);
 
             // Assert
-            Assert.True(maskedCustomerData.Documents?.All(value => expectedMask.Equals(value)));
+            Assert.True(maskedCustomerData.Documents?.All(value => DefaultMask.Equals(value)));
         }
 
         [Fact]
@@ -196,13 +193,12 @@ namespace JsonDataMasking.Test
                     { "name", "Jane Doe" }
                 }
             };
-            var expectedMask = new string('*', JsonMask.DefaultMaskSize);
 
             // Act
             var maskedCustomerData = JsonMask.MaskSensitiveData(customer);
 
             // Assert
-            Assert.True(maskedCustomerData.CustomFields?.All(pair => expectedMask.Equals(pair.Value)));
+            Assert.True(maskedCustomerData.CustomFields?.All(pair => DefaultMask.Equals(pair.Value)));
         }
 
         [Fact]
@@ -217,13 +213,12 @@ namespace JsonDataMasking.Test
                     Guid.NewGuid().ToString()
                 }.AsEnumerable()
             };
-            var expectedMask = new string('*', JsonMask.DefaultMaskSize);
 
             // Act
             var maskedCustomerData = JsonMask.MaskSensitiveData(customer);
 
             // Assert
-            Assert.True(maskedCustomerData.CustomerIds?.All(id => expectedMask.Equals(id)));
+            Assert.True(maskedCustomerData.CustomerIds?.All(id => DefaultMask.Equals(id)));
         }
 
         [Fact]
@@ -240,13 +235,12 @@ namespace JsonDataMasking.Test
                    }
                 }.AsEnumerable()
             };
-            var expectedMask = new string('*', JsonMask.DefaultMaskSize);
 
             // Act
             var maskedCustomerData = JsonMask.MaskSensitiveData(customer);
 
             // Assert
-            Assert.True(maskedCustomerData.Addresses?.All(address => expectedMask.Equals(address?.ZipCode)));
+            Assert.True(maskedCustomerData.Addresses?.All(address => DefaultMask.Equals(address?.ZipCode)));
         }
 
         [Fact]
@@ -284,6 +278,22 @@ namespace JsonDataMasking.Test
 
             // Act and assert
             Assert.Throws<NotSupportedException>(() => JsonMask.MaskSensitiveData(customerBalance));
+        }
+
+        [Fact]
+        public void MaskSensitiveData_DoesNotModifyOriginalObject_WhenMaskingTheObjectsProperties()
+        {
+            // Arrange
+            var customer = new CustomerMock
+            {
+                FullName = "John Doe"
+            };
+
+            // Act
+            var maskedCustomer = JsonMask.MaskSensitiveData(customer);
+
+            // Assert
+            Assert.NotEqual(customer.FullName, maskedCustomer.FullName);
         }
     }
 }
