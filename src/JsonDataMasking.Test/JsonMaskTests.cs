@@ -295,5 +295,15 @@ namespace JsonDataMasking.Test
             // Assert
             Assert.NotEqual(customer.FullName, maskedCustomer.FullName);
         }
+
+        [Fact]
+        public void MaskSensitiveData_ThrowsArgumentNullException_WhenObjectIsNull()
+        {
+            // Arrange
+            CustomerMock? customer = null;
+
+            // Act and assert
+            Assert.Throws<ArgumentNullException>(() => JsonMask.MaskSensitiveData(customer));
+        }
     }
 }
