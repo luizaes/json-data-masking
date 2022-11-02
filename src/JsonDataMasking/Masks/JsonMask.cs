@@ -1,4 +1,5 @@
-﻿using JsonDataMasking.Attributes;
+﻿using Force.DeepCloner;
+using JsonDataMasking.Attributes;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,7 +19,7 @@ namespace JsonDataMasking.Masks
 
         #region Masking
         /// <summary>
-        /// Mask values of <c>string</c> type class properties that have the <c>[SensitiveData]</c> attribute.
+        /// Mask values of <c>string/string collections</c> type class properties that have the <c>[SensitiveData]</c> attribute.
         /// Properties with <c>null</c> values or that don't have the attribute remain unchanged.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -28,14 +29,12 @@ namespace JsonDataMasking.Masks
         /// <exception cref="NotSupportedException">Thrown if the <c>[SensitiveData]</c> attribute was added to a not supported type</exception>
         public static T MaskSensitiveData<T>(T data)
         {
-            // Workaround to create a copy of data, instead of using the original object
-            var serializedData = JsonSerializer.Serialize(data);
-            var deserializedData = JsonSerializer.Deserialize<T>(serializedData);
-
-            if (deserializedData is null)
+            if (data is null)
                 throw new ArgumentNullException(nameof(data));
 
-            return MaskPropertiesWithSensitiveDataAttribute(deserializedData);
+            var dataDeepClone = data.DeepClone();
+
+            return MaskPropertiesWithSensitiveDataAttribute(dataDeepClone);
         }
 
         private static T MaskPropertiesWithSensitiveDataAttribute<T>(T data)
@@ -169,7 +168,7 @@ namespace JsonDataMasking.Masks
 
         private static bool IsClassReferenceType(Type type)
         {
-            if (type == null || type == typeof(string))
+            if (type == null || type == typeof(string) || type == typeof(object))
                 return false;
             return type.IsClass && !type.IsGenericType;
         }
