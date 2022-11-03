@@ -13,7 +13,6 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <ImplicitUsings>disable</ImplicitUsings>
     <PackageIcon>Icon.png</PackageIcon>
-    <Version>1.2.1</Version>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
