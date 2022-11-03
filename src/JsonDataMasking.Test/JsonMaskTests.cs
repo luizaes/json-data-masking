@@ -305,5 +305,68 @@ namespace JsonDataMasking.Test
             // Act and assert
             Assert.Throws<ArgumentNullException>(() => JsonMask.MaskSensitiveData(customer));
         }
+
+        [Fact]
+        public void MaskSensitiveData_ThrowsNotSupportedException_WhenPropertyHasBaseObjectType()
+        {
+            // Arrange
+            var credentials = new AuthCredentialsMock
+            {
+                ApiKey = new CreditCardMock { SecurityCode = 123},
+                ApiToken = "123"
+            };
+
+            // Act and assert
+            Assert.Throws<NotSupportedException>(() => JsonMask.MaskSensitiveData(credentials));
+        }
+
+        [Fact]
+        public void MaskSensitiveData_DoesNotMask_WhenDataHasAnonymousType()
+        {
+            // Arrange
+            var anonymousObj = new { a = 123, b = "123"};
+
+            // Act
+            var maskedAnonymousObj = JsonMask.MaskSensitiveData(anonymousObj);
+
+            // Assert
+            Assert.Equal(anonymousObj.a, maskedAnonymousObj.a);
+        }
+
+        [Fact]
+        public void MaskSensitiveData_DoesNotEnterInfiniteLoop_WhenDataHasACycle()
+        {
+            // Arrange
+            var loopObj = new LoopMock
+            {
+                Child = new LoopMock
+                {
+                    Child = new LoopMock()
+                }
+            };
+
+            // Act
+            var maskedLoopObj = JsonMask.MaskSensitiveData(loopObj);
+
+            // Assert
+            Assert.NotNull(maskedLoopObj);
+        }
+
+        [Fact]
+        public void MaskSensitiveData_ThrowsNotSupportedException_WhenPropertyIsArray()
+        {
+            // Arrange
+            var passcodes = new PasscodesMock
+            {
+                Passcodes = new[]
+                {
+                    "test1234",
+                    "abcd"
+                }
+            };
+
+            // Act and assert
+            Assert.Throws<NotSupportedException>(() => JsonMask.MaskSensitiveData(passcodes));
+        }
     }
 }
