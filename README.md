@@ -1,4 +1,5 @@
 [![NuGet Version](https://img.shields.io/nuget/v/JsonDataMasking)](https://www.nuget.org/packages/JsonDataMasking/)
+![CI](https://github.com/luizaes/json-data-masking/actions/workflows/ci.yml/badge.svg)
 
 # JSON Data Masking
 
@@ -16,11 +17,20 @@ After installing the Nuget package in your project, you need to take the followi
     - **SubstituteText**: If set, the entire property value will be override with this text. Note that using this setting will ignore all other settings.
     - **Mask**: Set to a character to use it when masking the property's value. By default, the character `*` is used.
 
-2. Call the `JsonMask.MaskSensitiveData()` function or, call directly the `JsonMaskSerializer.Serialize()` to mask your data and serialize your object with `System.Text.Json`'s serializer.
+2. Call the `JsonMask.MaskSensitiveData()` function, passing in your object instance as a parameter.
 
-### Support
+## Support
 
 This library supports masking of `string` fields only, although it also supports `List<string>`/`IEnumerable<string>` and `Dictionary<string, string>`. Nested class properties are also masked, independently of depth. 
+
+| Property Type 	| Support 	|
+|:---:	|:---:	|
+| string 	| ✅ 	|
+| List\<T>, where T is a class or string 	| ✅ 	|
+| IEnumerable\<T>, where T is a class or string 	| ✅ 	|
+| Dictionary<string, string> 	| ✅ 	|
+| Any other collection type, such as Array, ArrayList\<T>, etc 	| ❌ 	|
+| Any other base type different from string 	| ❌ 	|
 
 ## Examples
 
@@ -49,5 +59,7 @@ public class PropertiesExamples
 ### Functions
 ```csharp
 var maskedData = JsonMask.MaskSensitiveData(data);
-var maskedDataSerialized = JsonMaskSerializer.Serialize(data);
 ```
+
+## Dependencies
+- [DeepCloner](https://github.com/force-net/DeepCloner)
