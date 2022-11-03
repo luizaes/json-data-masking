@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Text.Json;
 
 namespace JsonDataMasking.Masks
 {
@@ -19,7 +18,7 @@ namespace JsonDataMasking.Masks
 
         #region Masking
         /// <summary>
-        /// Mask values of <c>string/string collections</c> type class properties that have the <c>[SensitiveData]</c> attribute.
+        /// Mask values of <c>string</c> and some <c>string collections</c> type class properties that have the <c>[SensitiveData]</c> attribute.
         /// Properties with <c>null</c> values or that don't have the attribute remain unchanged.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -168,7 +167,7 @@ namespace JsonDataMasking.Masks
 
         private static bool IsClassReferenceType(Type type)
         {
-            if (type == null || type == typeof(string) || type == typeof(object))
+            if (type == null || type == typeof(string) || type == typeof(object) || type.BaseType == typeof(Array))
                 return false;
             return type.IsClass && !type.IsGenericType;
         }

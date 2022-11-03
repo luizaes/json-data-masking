@@ -31,7 +31,6 @@
 
   <ItemGroup>
     <PackageReference Include="DeepCloner" Version="0.10.4" />
-    <PackageReference Include="System.Text.Json" Version="6.0.5" />
   </ItemGroup>
 
 </Project>
