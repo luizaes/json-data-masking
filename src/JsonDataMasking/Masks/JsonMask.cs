@@ -100,11 +100,6 @@ namespace JsonDataMasking.Masks
                 property.SetValue(data, maskedNestedPropertyValue);
         }
 
-        private static bool IsPropertyTypeEqualsToAnonymousType(PropertyInfo property)
-        {
-            return property.ReflectedType.AssemblyQualifiedName.Contains("AnonymousType");
-        }
-
         private static void MaskIEnumerableProperty<T>(T data, PropertyInfo property)
         {
             var collection = (property.GetValue(data) as IEnumerable)!;
@@ -162,6 +157,9 @@ namespace JsonDataMasking.Masks
         #endregion Convertion
 
         #region Validations
+        private static bool IsPropertyTypeEqualsToAnonymousType(PropertyInfo property) =>
+            property.ReflectedType.AssemblyQualifiedName.Contains("AnonymousType");
+
         private static bool IsSupportedBaseType(Type type) => type switch
         {
             Type _ when type == typeof(string) => true,
