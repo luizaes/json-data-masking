@@ -321,16 +321,21 @@ namespace JsonDataMasking.Test
         }
 
         [Fact]
-        public void MaskSensitiveData_DoesNotMask_WhenDataHasAnonymousType()
+        public void MaskSensitiveData_MasksProperty_WhenDataHasAnonymousType()
         {
             // Arrange
-            var anonymousObj = new { a = 123, b = "123"};
+            var customer = new CustomerMock
+            {
+                FullName = "John Doe"
+            };
+            var anonymousObj = new { customer };
+            var expectedObj = new CustomerMock { FullName = "*****" };
 
             // Act
             var maskedAnonymousObj = JsonMask.MaskSensitiveData(anonymousObj);
 
             // Assert
-            Assert.Equal(anonymousObj.a, maskedAnonymousObj.a);
+            Assert.Equal(expectedObj.FullName, maskedAnonymousObj.customer.FullName);
         }
 
         [Fact]

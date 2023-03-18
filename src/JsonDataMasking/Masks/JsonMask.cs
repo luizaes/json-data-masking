@@ -96,7 +96,8 @@ namespace JsonDataMasking.Masks
         private static void MaskClassProperty<T>(T data, PropertyInfo property)
         {
             var maskedNestedPropertyValue = MaskPropertiesWithSensitiveDataAttribute(property.GetValue(data));
-            property.SetValue(data, maskedNestedPropertyValue);
+            if (!IsPropertyTypeEqualsToAnonymousType(property))
+                property.SetValue(data, maskedNestedPropertyValue);
         }
 
         private static void MaskIEnumerableProperty<T>(T data, PropertyInfo property)
@@ -109,7 +110,7 @@ namespace JsonDataMasking.Masks
             foreach (var value in collection)
             {
                 if (collectionType is null) collectionType = value.GetType();
-                
+
                 object? maskedCollectionValue = null;
                 if (IsClassReferenceType(collectionType))
                     maskedCollectionValue = MaskPropertiesWithSensitiveDataAttribute(value);
@@ -156,6 +157,9 @@ namespace JsonDataMasking.Masks
         #endregion Convertion
 
         #region Validations
+        private static bool IsPropertyTypeEqualsToAnonymousType(PropertyInfo property) =>
+            property.ReflectedType.AssemblyQualifiedName.Contains("AnonymousType");
+
         private static bool IsSupportedBaseType(Type type) => type switch
         {
             Type _ when type == typeof(string) => true,
