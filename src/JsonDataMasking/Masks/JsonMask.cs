@@ -25,13 +25,16 @@ namespace JsonDataMasking.Masks
         /// <param name="data"></param>
         /// <returns><c>T</c> maskedData</returns>
         /// <exception cref="ArgumentNullException">Thrown when the <c>data</c> parameter is <c>null</c></exception>
-        /// <exception cref="NotSupportedException">Thrown if the <c>[SensitiveData]</c> attribute was added to a not supported type</exception>
+        /// <exception cref="NotSupportedException">Thrown if the type of the data passed to the method is not a class or anonymous, or the <c>[SensitiveData]</c> attribute was added to a not supported type</exception>
         public static T MaskSensitiveData<T>(T data)
         {
             if (data is null)
                 throw new ArgumentNullException(nameof(data));
 
             var dataDeepClone = data.DeepClone();
+
+            if(!IsParameterTypeValid(dataDeepClone))
+                throw new NotSupportedException($"{nameof(data)} should either be a class or have an anonymous type");
 
             return MaskPropertiesWithSensitiveDataAttribute(dataDeepClone);
         }
@@ -157,8 +160,22 @@ namespace JsonDataMasking.Masks
         #endregion Convertion
 
         #region Validations
+        private static bool IsParameterTypeValid<T>(T data)
+        {
+            var parameterType = data!.GetType();
+            return parameterType switch
+            {
+                Type _ when IsClassReferenceType(parameterType) => true,
+                Type _ when IsTypeAnonymous(parameterType) => true,
+                _ => false
+            };
+        }
+
         private static bool IsPropertyTypeEqualsToAnonymousType(PropertyInfo property) =>
             property.ReflectedType.AssemblyQualifiedName.Contains("AnonymousType");
+
+        private static bool IsTypeAnonymous(Type type) =>
+            type.Name.Contains("AnonymousType");
 
         private static bool IsSupportedBaseType(Type type) => type switch
         {

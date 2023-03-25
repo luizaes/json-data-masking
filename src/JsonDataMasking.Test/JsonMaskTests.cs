@@ -339,6 +339,24 @@ namespace JsonDataMasking.Test
         }
 
         [Fact]
+        public void MaskSensitiveData_MasksProperty_WhenDataHasAnonymousTypeAndAssignedName()
+        {
+            // Arrange
+            var customer = new CustomerMock
+            {
+                FullName = "John Doe"
+            };
+            var anonymousObj = new { Customer = customer, Id = 12345 };
+            var expectedObj = new CustomerMock { FullName = "*****" };
+
+            // Act
+            var maskedAnonymousObj = JsonMask.MaskSensitiveData(anonymousObj);
+
+            // Assert
+            Assert.Equal(expectedObj.FullName, maskedAnonymousObj.Customer.FullName);
+        }
+
+        [Fact]
         public void MaskSensitiveData_DoesNotEnterInfiniteLoop_WhenDataHasACycle()
         {
             // Arrange
@@ -372,6 +390,36 @@ namespace JsonDataMasking.Test
 
             // Act and assert
             Assert.Throws<NotSupportedException>(() => JsonMask.MaskSensitiveData(passcodes));
+        }
+
+        [Fact]
+        public void MaskSensitiveData_ThrowsNotSupportedException_WhenParameterTypeIsList()
+        {
+            // Arrange
+            var passwords = new List<string>() { "1234", "admin" };
+
+            // Act and assert
+            Assert.Throws<NotSupportedException>(() => JsonMask.MaskSensitiveData(passwords));
+        }
+
+        [Fact]
+        public void MaskSensitiveData_ThrowsNotSupportedException_WhenParameterTypeIsString()
+        {
+            // Arrange
+            var password = "1234";
+
+            // Act and assert
+            Assert.Throws<NotSupportedException>(() => JsonMask.MaskSensitiveData(password));
+        }
+
+        [Fact]
+        public void MaskSensitiveData_ThrowsNotSupportedException_WhenParameterTypeIsInteger()
+        {
+            // Arrange
+            var password = 12345;
+
+            // Act and assert
+            Assert.Throws<NotSupportedException>(() => JsonMask.MaskSensitiveData(password));
         }
     }
 }
