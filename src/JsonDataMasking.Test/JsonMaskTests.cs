@@ -109,16 +109,6 @@ namespace JsonDataMasking.Test
         }
 
         [Fact]
-        public void MaskSensitiveData_ThrowsNotSupportedException_WhenPropertyWithNotSupportedTypeHasAttribute()
-        {
-            // Arrange
-            var creditCard = new CreditCardMock { SecurityCode = 999 };
-
-            // Act and Assert
-            Assert.Throws<NotSupportedException>(() => JsonMask.MaskSensitiveData(creditCard));
-        }
-
-        [Fact]
         public void MaskSensitiveData_MasksUsingDefaultSize_WhenHasAttributeWithInvalidShowFirstAndLastRange()
         {
             // Arrange
@@ -372,6 +362,62 @@ namespace JsonDataMasking.Test
 
             // Act and assert
             Assert.Throws<NotSupportedException>(() => JsonMask.MaskSensitiveData(passcodes));
+        }
+
+        [Fact]
+        public void MaskSensitiveData_MasksOtherBaseTypes()
+        {
+            // Arrange
+            var kink = new BasicTypesSensitiveMock();
+
+            // Act and Assert
+            var maskedKink = JsonMask.MaskSensitiveData(kink);
+
+            // Assert
+            Assert.False(maskedKink.Bool);
+            Assert.Equal(0, maskedKink.Byte);
+            Assert.Equal(0, maskedKink.Sbyte);
+            Assert.Equal(0, maskedKink.Short);
+            Assert.Equal(0, maskedKink.Ushort);
+            Assert.Equal(0, maskedKink.Int);
+            Assert.Equal(0u, maskedKink.Uint);
+            Assert.Equal(0, maskedKink.Long);
+            Assert.Equal(0u, maskedKink.Ulong);
+            Assert.Equal(0, maskedKink.Float);
+            Assert.Equal(0, maskedKink.Double);
+            Assert.Equal(0, maskedKink.Decimal);
+            Assert.Equal('0', maskedKink.Char);
+            Assert.Equal(new DateTime(), maskedKink.DateTime);
+            Assert.Equal(new DateTimeOffset(), maskedKink.DateTimeOffset);
+            Assert.Equal(Guid.Empty, maskedKink.Guid);
+        }
+
+        [Fact]
+        public void MaskSensitiveData_DoesNotMasksOtherBaseTypes_WhenWithoutSensitiveAttrib()
+        {
+            // Arrange
+            var kink = new BasicTypesMock();
+
+            // Act and Assert
+            var maskedKink = JsonMask.MaskSensitiveData(kink);
+
+            // Assert
+            Assert.True(maskedKink.Bool);
+            Assert.Equal(1, maskedKink.Byte);
+            Assert.Equal(1, maskedKink.Sbyte);
+            Assert.Equal(1, maskedKink.Short);
+            Assert.Equal(1, maskedKink.Ushort);
+            Assert.Equal(1, maskedKink.Int);
+            Assert.Equal(1u, maskedKink.Uint);
+            Assert.Equal(1, maskedKink.Long);
+            Assert.Equal(1u, maskedKink.Ulong);
+            Assert.Equal(1, maskedKink.Float);
+            Assert.Equal(1, maskedKink.Double);
+            Assert.Equal(1, maskedKink.Decimal);
+            Assert.Equal('1', maskedKink.Char);
+            Assert.Equal(new DateTime().AddYears(1), maskedKink.DateTime);
+            Assert.Equal(new DateTimeOffset().AddYears(1), maskedKink.DateTimeOffset);
+            Assert.Equal(Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff"), maskedKink.Guid);
         }
     }
 }

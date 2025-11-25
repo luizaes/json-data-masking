@@ -18,7 +18,7 @@ namespace JsonDataMasking.Masks
 
         #region Masking
         /// <summary>
-        /// Mask values of <c>string</c> and some <c>string collections</c> type class properties that have the <c>[SensitiveData]</c> attribute.
+        /// Mask values of primitive types and some <c>string collections</c> type class properties that have the <c>[SensitiveData]</c> attribute.
         /// Properties with <c>null</c> values or that don't have the attribute remain unchanged.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -61,16 +61,44 @@ namespace JsonDataMasking.Masks
                 {
                     MaskDictionaryProperty(data, property);
                 }
-                else if (propertyAttribute != null && IsSupportedBaseType(property.PropertyType))
+                else if (propertyAttribute != null)
                 {
-                    var maskedPropertyValue = GetMaskedPropertyValue(propertyValue?.ToString(), propertyAttribute);
+                    var maskedPropertyValue = GetMaskedPropertyValue(property.PropertyType, propertyValue, propertyAttribute);
                     property.SetValue(data, maskedPropertyValue);
                 }
             }
             return data;
         }
 
-        private static string? GetMaskedPropertyValue(string? currentPropertyValue, SensitiveDataAttribute attribute)
+        private static readonly Dictionary<Type, object?> MaskDefaults = new Dictionary<Type, object?>()
+        {
+            [typeof(bool)] = false,
+            [typeof(byte)] = (byte)0,
+            [typeof(sbyte)] = (sbyte)0,
+            [typeof(short)] = (short)0,
+            [typeof(ushort)] = (ushort)0,
+            [typeof(int)] = 0,
+            [typeof(uint)] = 0U,
+            [typeof(long)] = 0L,
+            [typeof(ulong)] = 0UL,
+            [typeof(float)] = 0F,
+            [typeof(double)] = 0D,
+            [typeof(decimal)] = 0M,
+            [typeof(char)] = '0',
+            [typeof(DateTime)] = new DateTime(),
+            [typeof(DateTimeOffset)] = new DateTimeOffset(),
+            [typeof(Guid)] = Guid.Empty
+        };
+
+        private static object? GetMaskedPropertyValue(Type type, object? currentPropertyValue, SensitiveDataAttribute attribute)
+            => type switch
+            {
+                _ when type == typeof(string) => GetMaskedPropertyValueString(currentPropertyValue?.ToString(), attribute),
+                _ when MaskDefaults.TryGetValue(type, out var defaultValue) => defaultValue,
+                _ => throw new NotSupportedException($"Masking of type {type.Name} is not supported")
+            };
+
+        private static string? GetMaskedPropertyValueString(string? currentPropertyValue, SensitiveDataAttribute attribute)
         {
             if (string.IsNullOrWhiteSpace(currentPropertyValue)) return currentPropertyValue;
 
@@ -114,8 +142,8 @@ namespace JsonDataMasking.Masks
                 object? maskedCollectionValue = null;
                 if (IsClassReferenceType(collectionType))
                     maskedCollectionValue = MaskPropertiesWithSensitiveDataAttribute(value);
-                else if (propertyAttribute != null && IsSupportedBaseType(collectionType))
-                    maskedCollectionValue = GetMaskedPropertyValue(value?.ToString(), propertyAttribute);
+                else if (propertyAttribute != null)
+                    maskedCollectionValue = GetMaskedPropertyValue(collectionType, value, propertyAttribute);
 
                 if (maskedCollectionValue != null)
                     maskedCollection.Add(maskedCollectionValue);
@@ -138,7 +166,7 @@ namespace JsonDataMasking.Masks
 
             foreach (var pair in collection)
             {
-                var maskedCollectionValue = GetMaskedPropertyValue(pair.Value, propertyAttribute);
+                var maskedCollectionValue = GetMaskedPropertyValueString(pair.Value, propertyAttribute);
                 maskedCollection.Add(pair.Key, maskedCollectionValue);
             }
             property.SetValue(data, maskedCollection);
@@ -159,12 +187,6 @@ namespace JsonDataMasking.Masks
         #region Validations
         private static bool IsPropertyTypeEqualsToAnonymousType(PropertyInfo property) =>
             property.ReflectedType.AssemblyQualifiedName.Contains("AnonymousType");
-
-        private static bool IsSupportedBaseType(Type type) => type switch
-        {
-            Type _ when type == typeof(string) => true,
-            _ => throw new NotSupportedException("Masking of non-string base types is not supported")
-        };
 
         private static bool AreFirstAndLastParametersInValidRange(int propertySize, SensitiveDataAttribute attribute) =>
             attribute.ShowFirst <= propertySize && attribute.ShowLast <= propertySize && (attribute.ShowFirst + attribute.ShowLast) <= propertySize;
