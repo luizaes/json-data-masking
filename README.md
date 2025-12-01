@@ -17,20 +17,27 @@ After installing the Nuget package in your project, you need to take the followi
     - **SubstituteText**: If set, the entire property value will be override with this text. Note that using this setting will ignore all other settings.
     - **Mask**: Set to a character to use it when masking the property's value. By default, the character `*` is used.
 
+   > PS.: These customization fields only work for fields with a `string` base type. 
+
 2. Call the `JsonMask.MaskSensitiveData()` function, passing in your object instance as a parameter.
 
 ## Support
 
-This library supports masking of `string` fields only, although it also supports `List<string>`/`IEnumerable<string>` and `Dictionary<string, string>`. Nested class properties are also masked, independently of depth. 
+### Base Types
+This library supports masking of the following base types:
+- `string` fields, which are masked following the rules detailed in the [Usage](#usage) section.
+- Other types such as `bool`, `(s)byte`, `(u)short`, `(u)int`, `(u)long`, `float`, `double`, `decimal`, `char`, `Datetime`, `DatetimeOffset`, and `Guid`, which are set to their respective default values when having the `[SensitiveData]` attribute.
+- Any other base types are currently NOT supported.
 
-| Property Type 	| Support 	|
-|:---:	|:---:	|
-| string 	| ✅ 	|
-| List\<T>, where T is a class or string 	| ✅ 	|
-| IEnumerable\<T>, where T is a class or string 	| ✅ 	|
-| Dictionary<string, string> 	| ✅ 	|
-| Any other collection type, such as Array, ArrayList\<T>, etc 	| ❌ 	|
-| Any other base type different from string 	| ❌ 	|
+### Collections
+The library also supports the masking of some collections, such as:
+- `List<T>`, where T is a class or `string`.
+- `IEnumerable<T>`, where T is a class or `string`.
+- `Dictionary<string, string>`.
+- Any other collection type, such as `Array`, `ArrayList<T>`, etc., is NOT supported.
+
+### Nested class fields
+Nested class properties are also masked, independently of depth. 
 
 ## Examples
 
