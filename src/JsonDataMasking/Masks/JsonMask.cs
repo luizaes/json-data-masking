@@ -72,22 +72,22 @@ namespace JsonDataMasking.Masks
 
         private static readonly Dictionary<Type, object?> MaskDefaults = new Dictionary<Type, object?>()
         {
-            [typeof(bool)] = default(bool),
-            [typeof(byte)] = default(byte),
-            [typeof(sbyte)] = default(sbyte),
-            [typeof(short)] = default(short),
-            [typeof(ushort)] = default(ushort),
-            [typeof(int)] = default(int),
-            [typeof(uint)] = default(uint),
-            [typeof(long)] = default(long),
-            [typeof(ulong)] = default(ulong),
-            [typeof(float)] = default(float),
-            [typeof(double)] = default(double),
-            [typeof(decimal)] = default(decimal),
-            [typeof(char)] = default(char),
-            [typeof(DateTime)] = default(DateTime),
-            [typeof(DateTimeOffset)] = default(DateTimeOffset),
-            [typeof(Guid)] = default(Guid)
+            [typeof(bool)] = false,
+            [typeof(byte)] = (byte)0,
+            [typeof(sbyte)] = (sbyte)0,
+            [typeof(short)] = (short)0,
+            [typeof(ushort)] = (ushort)0,
+            [typeof(int)] = 0,
+            [typeof(uint)] = 0U,
+            [typeof(long)] = 0L,
+            [typeof(ulong)] = 0UL,
+            [typeof(float)] = 0F,
+            [typeof(double)] = 0D,
+            [typeof(decimal)] = 0M,
+            [typeof(char)] = '0',
+            [typeof(DateTime)] = new DateTime(),
+            [typeof(DateTimeOffset)] = new DateTimeOffset(),
+            [typeof(Guid)] = Guid.Empty
         };
 
         private static object? GetMaskedPropertyValue(Type type, object? currentPropertyValue, SensitiveDataAttribute attribute)
