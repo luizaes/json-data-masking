@@ -28,7 +28,7 @@ jobs:
       run: dotnet restore $SOLUTION
 
     - name: Build
-      run: dotnet build $SOLUTION -p:Version=${GITHUB_REF_NAME:1} --no-restore
+      run: dotnet build $SOLUTION -p:Version=${GITHUB_REF_NAME:1} --configuration Release --no-restore
       
     - name: Publish
       run: dotnet nuget push "**/*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key "${{ secrets.NUGET_API_KEY }}"
